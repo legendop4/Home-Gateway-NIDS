@@ -12,7 +12,6 @@ data/*.db
 data/*.db-wal
 data/*.db-shm
 data/*.jsonl
-data/pcaps/*.pcap
 models/*.joblib
 .env
 .venv/
