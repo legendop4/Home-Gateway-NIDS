@@ -1,0 +1,19 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# Runtime data & models
+data/*.db
+data/*.db-wal
+data/*.db-shm
+data/*.jsonl
+data/pcaps/*.pcap
+models/*.joblib
+.env
+.venv/
+venv/

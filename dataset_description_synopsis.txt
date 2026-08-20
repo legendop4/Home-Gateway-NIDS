@@ -1,0 +1,97 @@
+================================================================================
+SECTION 8: DATASET DESCRIPTION (FOR PROJECT SYNOPSIS)
+================================================================================
+
+8.1 DATASET SOURCE
+--------------------------------------------------------------------------------
+The dataset is synthesized using a combination of deterministic network traffic
+simulation and lab-generated Packet Capture (PCAP) files using Scapy. The
+traffic patterns model enterprise gateway environments, strictly conforming
+to the MITRE ATT&CK T1046 (Network Service Discovery / Reconnaissance) threat
+model.
+
+
+8.2 DATASET VOLUME & RECORDS
+--------------------------------------------------------------------------------
+- Total Sessions: 6,010 isolated network sessions.
+- Temporal Windows: Each session contains a sequence of 10 consecutive 60-second
+  sliding windows (a 10-minute historical context window), yielding 60,100 total
+  temporal feature records.
+- Raw PCAPs: Lab captures including 'lab_benign.pcap', 'lab_fast_scan.pcap', and
+  'lab_stealth_scan.pcap' for end-to-end packet ingestion validation.
+
+
+8.3 TRAIN / VALIDATION / TEST SPLIT
+--------------------------------------------------------------------------------
+To prevent data leakage, dataset partitioning is strictly isolated at the
+Session-ID level rather than random packet slicing:
+
++-----------------------------+----------------+-----------------+----------------+------------+----------------------------------------------------+
+| Dataset Split               | Total Sessions | Benign Sessions | Recon Sessions | Percentage | Description / Composition                          |
++-----------------------------+----------------+-----------------+----------------+------------+----------------------------------------------------+
+| Training Set (train.npz)    | 3,300          | 1,800           | 1,500          | 54.9%      | Browsing, HTTP flows, SYN scans, stealth, sweeps.  |
+| Validation Set (val.npz)    | 810            | 430             | 380            | 13.5%      | Hyperparameter tuning and model checkpointing.     |
+| Test Set (test.npz)         | 1,100          | 600             | 500            | 18.3%      | Held-out standard benchmark evaluation.            |
+| Evasion Test (evasion.npz)  | 800            | 400             | 400            | 13.3%      | Unseen distributions (Poisson jitter, low-SYN).    |
++-----------------------------+----------------+-----------------+----------------+------------+----------------------------------------------------+
+| TOTAL                       | 6,010          | 3,230           | 2,780          | 100.0%     | Comprehensive multi-scenario benchmark.            |
++-----------------------------+----------------+-----------------+----------------+------------+----------------------------------------------------+
+
+
+8.4 FEATURE SET & ATTRIBUTES (8 STATISTICAL FLOW METRICS)
+--------------------------------------------------------------------------------
+Each 60-second time window extracts an 8-dimensional behavioral feature vector:
+
+1. dst_port_count (Float32 / Int, Range: [0, inf)):
+   Number of unique destination ports targeted within the 60-second window.
+
+2. dst_ip_count (Float32 / Int, Range: [0, inf)):
+   Number of unique target IP addresses probed.
+
+3. syn_ratio (Float32, Range: [0.0, 1.0]):
+   Proportion of TCP SYN packets relative to total packets.
+
+4. syn_ack_ratio (Float32, Range: [0.0, inf)):
+   Ratio of SYN packets to SYN-ACK responses (measures connection handshake completion).
+
+5. rst_ratio (Float32, Range: [0.0, 1.0]):
+   Proportion of TCP RST packets received (evaluates connection rejection rate from closed ports).
+
+6. packet_rate (Float32, Range: [0.0, inf)):
+   Average packet transmission speed in packets per second (pkts/sec).
+
+7. byte_rate (Float32, Range: [0.0, inf)):
+   Average data transfer throughput in bytes per second (Bps).
+
+8. flow_duration_mean (Float32, Range: [0.0, inf)):
+   Mean lifetime duration of active network flows in seconds.
+
+
+8.5 TARGET VARIABLE
+--------------------------------------------------------------------------------
+- Target Name: label / is_recon
+- Data Type: Binary (Float32 / Int64)
+- Classes:
+  * 0 (Benign Traffic): Standard web browsing, short-lived HTTP/REST/DNS API
+    requests, high-throughput video streaming/downloads, and periodic idle IoT
+    heartbeats.
+  * 1 (Reconnaissance / Attack): Fast TCP SYN scans (>20 pkts/s), slow stealth
+    scans (<1 pkt/s across multiple minutes), randomized sweeps, stochastic
+    Poisson probes, and decoy low-SYN scans.
+
+
+8.6 PREPROCESSING & FEATURE ENGINEERING TECHNIQUES
+--------------------------------------------------------------------------------
+1. Sliding Window Aggregation: Raw packets are aggregated into 60-second fixed-time
+   buckets per source IP.
+2. Temporal Window Sequencer: 10 consecutive 60-second windows are stacked into
+   a 3D Tensor of shape (Batch Size, 10, 8).
+3. Session-Level Split Isolation: Strict cryptographic session hashing ensures
+   no overlapping source IPs or connection sequences exist between training
+   and evaluation splits.
+4. Attention Masking: A binary mask (10 x 1) is generated per sequence to mask
+   out zero-padded historical windows for newly initiated connections.
+5. Feature Normalization & Outlier Handling: Z-score standardization and clipping
+   applied across skewed volumetric metrics (byte_rate, packet_rate) to ensure
+   numerical stability during neural network training.
+================================================================================

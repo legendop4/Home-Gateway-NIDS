@@ -1,0 +1,82 @@
+# Home-Gateway NIDS Configuration
+
+system:
+  environment: "development"  # "development" or "raspberry_pi"
+  log_level: "INFO"
+  db_path: "data/nids.db"
+  siem_export_path: "data/siem_alerts.jsonl"
+  syslog_facility: "LOG_LOCAL6"
+
+capture:
+  adapter: "pcap"             # "pcap", "scapy", or "linux_raw"
+  interface: "wlan0"          # Used in live capture
+  bpf_filter: "ip"            # Capture only IPv4 packets
+  pcap_file: null             # Set if replaying PCAP
+
+suricata:
+  enabled: true
+  eve_path: "data/eve.json"   # Suricata EVE log path
+  poll_interval_sec: 0.5
+  recon_signature_keywords:
+    - "SCAN"
+    - "Portscan"
+    - "Nmap"
+    - "Reconnaissance"
+    - "SSH Scan"
+    - "SYN Scan"
+    - "FIN Scan"
+    - "NULL Scan"
+    - "XMAS Scan"
+
+feature_extraction:
+  window_size_sec: 60         # 60s per window
+  sequence_length: 10         # 10 windows = 10 minutes history
+  features:
+    - "dst_port_count"
+    - "dst_ip_count"
+    - "syn_ratio"
+    - "syn_ack_ratio"
+    - "rst_ratio"
+    - "packet_rate"
+    - "byte_rate"
+    - "flow_duration_mean"
+
+ml:
+  enabled: true
+  model_type: "transformer"   # "transformer" or "baseline"
+  model_weights_path: "models/transformer_recon.pt"
+  decision_threshold: 0.70    # Probability threshold for reconnaissance
+  device: "cpu"               # "cpu" or "cuda"
+  d_model: 32
+  nhead: 4
+  num_layers: 2
+  dim_feedforward: 64
+  dropout: 0.1
+
+fusion:
+  alert_cooldown_sec: 120     # Avoid alert flooding for same IP
+  min_packets_for_ml: 10      # Minimum packets in 10m before evaluating ML
+
+dashboard:
+  host: "127.0.0.1"           # Safe local default (use 0.0.0.0 only when explicitly configured for gateway exposure)
+  port: 5000
+  debug: false
+
+limits:
+  max_active_flows: 50000     # Maximum concurrent in-memory bidirectional flows
+  max_tracked_ips: 10000      # Maximum distinct IPs tracked in sliding window sequences
+  max_pending_alerts: 5000    # Maximum pending alerts in cooldown cache
+  max_siem_queue: 5000        # Maximum backlog buffer for SIEM exporter
+
+health:
+  heartbeat_timeout_seconds: 60.0
+  watchdog_interval_seconds: 5.0
+
+security:
+  # In production, keys must be supplied via NIDS_ADMIN_API_KEY and NIDS_VIEWER_API_KEY environment variables.
+  allowed_origins:
+    - "http://127.0.0.1:5000"
+    - "http://localhost:5000"
+
+
+

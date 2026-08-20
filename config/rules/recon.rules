@@ -1,0 +1,19 @@
+# Reconnaissance and Port Scan Signatures for Home-Gateway NIDS
+
+# Fast TCP SYN Scan detection (ET SCAN Nmap SYN Scan)
+alert tcp any any -> any any (msg:"ET SCAN Potential Nmap SYN Scan"; flags:S,12; threshold:type both, track by_src, count 20, seconds 5; classtype:attempted-recon; sid:2000001; rev:1;)
+
+# TCP FIN Scan (Nmap -sF)
+alert tcp any any -> any any (msg:"ET SCAN Nmap FIN Scan"; flags:F,12; classtype:attempted-recon; sid:2000002; rev:1;)
+
+# TCP NULL Scan (Nmap -sN)
+alert tcp any any -> any any (msg:"ET SCAN Nmap NULL Scan"; flags:0; classtype:attempted-recon; sid:2000003; rev:1;)
+
+# TCP XMAS Scan (Nmap -sX)
+alert tcp any any -> any any (msg:"ET SCAN Nmap XMAS Scan"; flags:FPU,12; classtype:attempted-recon; sid:2000004; rev:1;)
+
+# Rapid Multi-Port Scan (Threshold based)
+alert tcp any any -> any any (msg:"ET SCAN Rapid Multi-Port Scan Detected"; flags:S; threshold:type both, track by_src, count 50, seconds 10; classtype:attempted-recon; sid:2000005; rev:1;)
+
+# Slow / Stealth Scan Probe (Low threshold across 60 seconds)
+alert tcp any any -> any any (msg:"ET SCAN Stealth Port Scan Probe"; flags:S; threshold:type both, track by_src, count 15, seconds 60; classtype:attempted-recon; sid:2000006; rev:1;)

@@ -1,0 +1,382 @@
+{
+  "meta": {
+    "evaluation_timestamp": "2026-08-19T16:57:01Z",
+    "decision_threshold": 0.7,
+    "suricata_execution_mode": "OFFLINE_RULE_ENGINE",
+    "test_samples_total": 1100,
+    "test_recon_samples": 500,
+    "test_benign_samples": 600
+  },
+  "synthetic_benchmark": {
+    "Heuristic_Rule_Detector": {
+      "confusion_matrix": {
+        "true_negatives": 535,
+        "false_positives": 65,
+        "false_negatives": 48,
+        "true_positives": 452
+      },
+      "accuracy": 0.8973,
+      "precision": 0.8743,
+      "recall": 0.904,
+      "f1_score": 0.8889,
+      "false_positive_rate": 0.1083,
+      "sample_count": 1000,
+      "latency_mean_ms": 0.1124,
+      "latency_p50_ms": 0.1076,
+      "latency_p95_ms": 0.1361,
+      "brier_score": 0.0947,
+      "expected_calibration_error": 0.1152
+    },
+    "Baseline_Logistic_Regression": {
+      "confusion_matrix": {
+        "true_negatives": 600,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_positives": 500
+      },
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "false_positive_rate": 0.0,
+      "sample_count": 2000,
+      "latency_mean_ms": 0.3619,
+      "latency_p50_ms": 0.3146,
+      "latency_p95_ms": 0.6042,
+      "brier_score": 0.0,
+      "expected_calibration_error": 0.001
+    },
+    "Transformer_1x8": {
+      "confusion_matrix": {
+        "true_negatives": 595,
+        "false_positives": 5,
+        "false_negatives": 0,
+        "true_positives": 500
+      },
+      "accuracy": 0.9955,
+      "precision": 0.9901,
+      "recall": 1.0,
+      "f1_score": 0.995,
+      "false_positive_rate": 0.0083,
+      "sample_count": 1000,
+      "latency_mean_ms": 2.3284,
+      "latency_p50_ms": 2.303,
+      "latency_p95_ms": 2.6349,
+      "brier_score": 0.0046,
+      "expected_calibration_error": 0.0057
+    },
+    "Transformer_5x8": {
+      "confusion_matrix": {
+        "true_negatives": 598,
+        "false_positives": 2,
+        "false_negatives": 1,
+        "true_positives": 499
+      },
+      "accuracy": 0.9973,
+      "precision": 0.996,
+      "recall": 0.998,
+      "f1_score": 0.997,
+      "false_positive_rate": 0.0033,
+      "sample_count": 1000,
+      "latency_mean_ms": 3.6627,
+      "latency_p50_ms": 3.6243,
+      "latency_p95_ms": 4.2207,
+      "brier_score": 0.0015,
+      "expected_calibration_error": 0.0027
+    },
+    "Transformer_10x8": {
+      "confusion_matrix": {
+        "true_negatives": 600,
+        "false_positives": 0,
+        "false_negatives": 16,
+        "true_positives": 484
+      },
+      "accuracy": 0.9855,
+      "precision": 1.0,
+      "recall": 0.968,
+      "f1_score": 0.9837,
+      "false_positive_rate": 0.0,
+      "sample_count": 1000,
+      "latency_mean_ms": 3.1825,
+      "latency_p50_ms": 3.0381,
+      "latency_p95_ms": 4.0754,
+      "brier_score": 0.0095,
+      "expected_calibration_error": 0.0125
+    }
+  },
+  "temporal_ablation": {
+    "Transformer_1x8_SingleWindow": {
+      "confusion_matrix": {
+        "true_negatives": 595,
+        "false_positives": 5,
+        "false_negatives": 0,
+        "true_positives": 500
+      },
+      "accuracy": 0.9955,
+      "precision": 0.9901,
+      "recall": 1.0,
+      "f1_score": 0.995,
+      "false_positive_rate": 0.0083,
+      "sample_count": 1000,
+      "latency_mean_ms": 2.3284,
+      "latency_p50_ms": 2.303,
+      "latency_p95_ms": 2.6349,
+      "brier_score": 0.0046,
+      "expected_calibration_error": 0.0057
+    },
+    "Transformer_5x8_FiveWindow": {
+      "confusion_matrix": {
+        "true_negatives": 598,
+        "false_positives": 2,
+        "false_negatives": 1,
+        "true_positives": 499
+      },
+      "accuracy": 0.9973,
+      "precision": 0.996,
+      "recall": 0.998,
+      "f1_score": 0.997,
+      "false_positive_rate": 0.0033,
+      "sample_count": 1000,
+      "latency_mean_ms": 3.6627,
+      "latency_p50_ms": 3.6243,
+      "latency_p95_ms": 4.2207,
+      "brier_score": 0.0015,
+      "expected_calibration_error": 0.0027
+    },
+    "Transformer_10x8_TenWindow": {
+      "confusion_matrix": {
+        "true_negatives": 600,
+        "false_positives": 0,
+        "false_negatives": 16,
+        "true_positives": 484
+      },
+      "accuracy": 0.9855,
+      "precision": 1.0,
+      "recall": 0.968,
+      "f1_score": 0.9837,
+      "false_positive_rate": 0.0,
+      "sample_count": 1000,
+      "latency_mean_ms": 3.1825,
+      "latency_p50_ms": 3.0381,
+      "latency_p95_ms": 4.0754,
+      "brier_score": 0.0095,
+      "expected_calibration_error": 0.0125
+    }
+  },
+  "feature_ablation": {
+    "SYN_Ratio_Only": {
+      "confusion_matrix": {
+        "true_negatives": 600,
+        "false_positives": 0,
+        "false_negatives": 500,
+        "true_positives": 0
+      },
+      "accuracy": 0.5455,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "false_positive_rate": 0.0,
+      "brier_score": 0.4514,
+      "expected_calibration_error": 0.4514
+    },
+    "Non_Temporal_All_Features (1x8)": {
+      "confusion_matrix": {
+        "true_negatives": 595,
+        "false_positives": 5,
+        "false_negatives": 0,
+        "true_positives": 500
+      },
+      "accuracy": 0.9955,
+      "precision": 0.9901,
+      "recall": 1.0,
+      "f1_score": 0.995,
+      "false_positive_rate": 0.0083,
+      "sample_count": 1000,
+      "latency_mean_ms": 2.3284,
+      "latency_p50_ms": 2.303,
+      "latency_p95_ms": 2.6349,
+      "brier_score": 0.0046,
+      "expected_calibration_error": 0.0057
+    },
+    "Full_10x8_Temporal_Sequence": {
+      "confusion_matrix": {
+        "true_negatives": 600,
+        "false_positives": 0,
+        "false_negatives": 16,
+        "true_positives": 484
+      },
+      "accuracy": 0.9855,
+      "precision": 1.0,
+      "recall": 0.968,
+      "f1_score": 0.9837,
+      "false_positive_rate": 0.0,
+      "sample_count": 1000,
+      "latency_mean_ms": 3.1825,
+      "latency_p50_ms": 3.0381,
+      "latency_p95_ms": 4.0754,
+      "brier_score": 0.0095,
+      "expected_calibration_error": 0.0125
+    }
+  },
+  "evasion_stress_test": {
+    "Baseline_Logistic_Regression": {
+      "confusion_matrix": {
+        "true_negatives": 400,
+        "false_positives": 0,
+        "false_negatives": 120,
+        "true_positives": 280
+      },
+      "accuracy": 0.85,
+      "precision": 1.0,
+      "recall": 0.7,
+      "f1_score": 0.8235,
+      "false_positive_rate": 0.0,
+      "brier_score": 0.1002,
+      "expected_calibration_error": 0.1241
+    },
+    "Transformer_1x8": {
+      "confusion_matrix": {
+        "true_negatives": 385,
+        "false_positives": 15,
+        "false_negatives": 140,
+        "true_positives": 260
+      },
+      "accuracy": 0.8062,
+      "precision": 0.9455,
+      "recall": 0.65,
+      "f1_score": 0.7704,
+      "false_positive_rate": 0.0375,
+      "brier_score": 0.1858,
+      "expected_calibration_error": 0.1725
+    },
+    "Transformer_5x8": {
+      "confusion_matrix": {
+        "true_negatives": 374,
+        "false_positives": 26,
+        "false_negatives": 9,
+        "true_positives": 391
+      },
+      "accuracy": 0.9562,
+      "precision": 0.9376,
+      "recall": 0.9775,
+      "f1_score": 0.9572,
+      "false_positive_rate": 0.065,
+      "brier_score": 0.0391,
+      "expected_calibration_error": 0.0401
+    },
+    "Transformer_10x8": {
+      "confusion_matrix": {
+        "true_negatives": 397,
+        "false_positives": 3,
+        "false_negatives": 4,
+        "true_positives": 396
+      },
+      "accuracy": 0.9912,
+      "precision": 0.9925,
+      "recall": 0.99,
+      "f1_score": 0.9912,
+      "false_positive_rate": 0.0075,
+      "brier_score": 0.0125,
+      "expected_calibration_error": 0.0199
+    }
+  },
+  "lab_pcap_evaluation": {
+    "engine_mode": "OFFLINE_RULE_ENGINE",
+    "per_file_breakdown": {
+      "lab_benign.pcap": {
+        "ground_truth": "BENIGN",
+        "engine_mode": "OFFLINE_RULE_ENGINE",
+        "suricata_alert_count": 0,
+        "suricata_detected": false,
+        "suricata_latency": {
+          "sample_count": 904,
+          "mean_ms": 0.0945,
+          "p50_ms": 0.0879,
+          "p95_ms": 0.1328
+        },
+        "transformer_max_score": 0.004,
+        "transformer_detected": false,
+        "hybrid_detected": false,
+        "suricata_signatures_triggered": []
+      },
+      "lab_fast_scan.pcap": {
+        "ground_truth": "RECON",
+        "engine_mode": "OFFLINE_RULE_ENGINE",
+        "suricata_alert_count": 8,
+        "suricata_detected": true,
+        "suricata_latency": {
+          "sample_count": 198,
+          "mean_ms": 0.0883,
+          "p50_ms": 0.0851,
+          "p95_ms": 0.1169
+        },
+        "transformer_max_score": 0.9993,
+        "transformer_detected": true,
+        "hybrid_detected": true,
+        "suricata_signatures_triggered": [
+          "ET SCAN Stealth Port Scan Probe",
+          "ET SCAN Rapid Multi-Port Scan Detected"
+        ]
+      },
+      "lab_stealth_scan.pcap": {
+        "ground_truth": "RECON",
+        "engine_mode": "OFFLINE_RULE_ENGINE",
+        "suricata_alert_count": 0,
+        "suricata_detected": false,
+        "suricata_latency": {
+          "sample_count": 40,
+          "mean_ms": 0.0894,
+          "p50_ms": 0.083,
+          "p95_ms": 0.1396
+        },
+        "transformer_max_score": 0.9993,
+        "transformer_detected": true,
+        "hybrid_detected": true,
+        "suricata_signatures_triggered": []
+      }
+    },
+    "suricata_pcap_metrics": {
+      "confusion_matrix": {
+        "true_negatives": 1,
+        "false_positives": 0,
+        "false_negatives": 1,
+        "true_positives": 1
+      },
+      "accuracy": 0.6667,
+      "precision": 1.0,
+      "recall": 0.5,
+      "f1_score": 0.6667,
+      "false_positive_rate": 0.0,
+      "sample_count": 3,
+      "latency_mean_ms": 0.0907,
+      "latency_p50_ms": 0.0894,
+      "latency_p95_ms": 0.094
+    },
+    "transformer_pcap_metrics": {
+      "confusion_matrix": {
+        "true_negatives": 1,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_positives": 2
+      },
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "false_positive_rate": 0.0
+    },
+    "hybrid_pcap_metrics": {
+      "confusion_matrix": {
+        "true_negatives": 1,
+        "false_positives": 0,
+        "false_negatives": 0,
+        "true_positives": 2
+      },
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "false_positive_rate": 0.0
+    }
+  }
+}

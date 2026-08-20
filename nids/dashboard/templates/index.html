@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home-Gateway NIDS | Hybrid Intrusion Detection Router</title>
+    <meta name="description" content="Lightweight Hybrid Intrusion Detection System with Suricata signatures and Sequence Transformer reconnaissance detection.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Navigation Bar -->
+        <header class="top-nav">
+            <div class="logo-group">
+                <div class="shield-icon">
+                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <h1>Home-Gateway <span>NIDS</span></h1>
+                    <p class="subtitle">Hybrid Reconnaissance Detection Gateway</p>
+                </div>
+            </div>
+            <div class="status-group">
+                <div class="pill pill-env" id="envBadge">ENV: DEV</div>
+                <div class="pill pill-status" id="mlStatusBadge">ML: INITIALIZING</div>
+                <div class="auto-refresh" id="refreshTimer">Next refresh in 5s</div>
+                <a href="/api/siem/export" class="btn btn-secondary btn-sm" id="btnExportSIEM" download>
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    SIEM Export (JSONL)
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Content -->
+        <main class="main-content">
+            <!-- Stat Cards Row -->
+            <section class="stats-grid">
+                <div class="stat-card" id="cardTotalAlerts">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Alerts</span>
+                        <span class="stat-badge badge-threat">THREATS</span>
+                    </div>
+                    <div class="stat-value" id="valTotalAlerts">0</div>
+                    <div class="stat-desc">Reconnaissance & Scan Detections</div>
+                </div>
+
+                <div class="stat-card" id="cardConnectedDevices">
+                    <div class="stat-header">
+                        <span class="stat-title">Active Devices</span>
+                        <span class="stat-badge badge-info">NETWORK</span>
+                    </div>
+                    <div class="stat-value" id="valTotalDevices">0</div>
+                    <div class="stat-desc">Host inventory routed through AP</div>
+                </div>
+
+                <div class="stat-card" id="cardHighRisk">
+                    <div class="stat-header">
+                        <span class="stat-title">High Risk Hosts</span>
+                        <span class="stat-badge badge-warn">FLAGGED</span>
+                    </div>
+                    <div class="stat-value" id="valHighRisk">0</div>
+                    <div class="stat-desc">Devices with active anomaly scores</div>
+                </div>
+
+                <div class="stat-card" id="cardModelHealth">
+                    <div class="stat-header">
+                        <span class="stat-title">Model State</span>
+                        <span class="stat-badge badge-success">INFERENCE</span>
+                    </div>
+                    <div class="stat-value font-mono" id="valModelState">10x60s TF</div>
+                    <div class="stat-desc">2-Layer Sequence Transformer</div>
+                </div>
+            </section>
+
+            <!-- Middle Row: Timeline Chart & 10-Window Inspector -->
+            <section class="middle-grid">
+                <div class="panel chart-panel">
+                    <div class="panel-header">
+                        <div class="panel-title-group">
+                            <h2>Live Anomaly Score & Packet Rate</h2>
+                            <p class="panel-subtitle">Streaming 60-second window metrics against 0.70 threshold</p>
+                        </div>
+                        <div class="chart-legend">
+                            <span class="legend-item"><span class="dot dot-cyan"></span> Anomaly Score</span>
+                            <span class="legend-item"><span class="dot dot-amber"></span> Threshold (0.70)</span>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="metricsChart" height="180"></canvas>
+                    </div>
+                </div>
+
+                <div class="panel sequence-panel">
+                    <div class="panel-header">
+                        <div class="panel-title-group">
+                            <h2>10 × 60s Temporal Sequence Inspector</h2>
+                            <p class="panel-subtitle">Historical feature progression for selected IP</p>
+                        </div>
+                        <select id="selectHost" class="select-input">
+                            <option value="">Select Host IP...</option>
+                        </select>
+                    </div>
+                    <div class="sequence-view" id="sequenceView">
+                        <div class="empty-state">Select a device from the table or dropdown to view its 10-window progression.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bottom Row: Alerts Feed & Device Inventory -->
+            <section class="bottom-grid">
+                <div class="panel alerts-panel">
+                    <div class="panel-header">
+                        <div class="panel-title-group">
+                            <h2>Intrusion Alerts Feed</h2>
+                            <p class="panel-subtitle">Signature-matched and Sequence Transformer confirmed events</p>
+                        </div>
+                        <div class="filter-group">
+                            <button class="filter-btn active" data-filter="ALL">All</button>
+                            <button class="filter-btn" data-filter="HYBRID">Hybrid</button>
+                            <button class="filter-btn" data-filter="SURICATA">Suricata</button>
+                            <button class="filter-btn" data-filter="TRANSFORMER_RECON">Transformer</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="alertsTable">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp (UTC)</th>
+                                    <th>Source Host</th>
+                                    <th>Attack Family</th>
+                                    <th>Method</th>
+                                    <th>Score / Conf</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="alertsTableBody">
+                                <tr><td colspan="6" class="loading-cell">Loading alerts...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel devices-panel">
+                    <div class="panel-header">
+                        <div class="panel-title-group">
+                            <h2>Connected Gateway Hosts</h2>
+                            <p class="panel-subtitle">LAN inventory and risk profiles</p>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="devicesTable">
+                            <thead>
+                                <tr>
+                                    <th>IP Address</th>
+                                    <th>Packets</th>
+                                    <th>Risk Level</th>
+                                    <th>Last Seen</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="devicesTableBody">
+                                <tr><td colspan="5" class="loading-cell">Loading devices...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/js/sequence_chart.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
