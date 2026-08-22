@@ -9,9 +9,11 @@ build/
 
 # Runtime data & models
 data/*.db
-data/*.db-wal
-data/*.db-shm
+data/*.db*
 data/*.jsonl
+data/e2e_test*
+data/unsw/*.csv
+*.csv
 models/*.joblib
 .env
 .venv/

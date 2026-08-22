@@ -1,0 +1,22 @@
+{
+  "dataset": "UNSW-NB15 Held-Out Test Set",
+  "sample_count": 8098,
+  "recon_samples": 703,
+  "normal_samples": 7395,
+  "accuracy": 0.70968140281551,
+  "precision": 0.23001310615989515,
+  "recall": 0.9985775248933144,
+  "f1_score": 0.37390146471371505,
+  "false_positive_rate": 0.31778228528495167,
+  "roc_auc": 0.9603835392988803,
+  "pr_auc": 0.6276712152197682,
+  "confusion_matrix": {
+    "true_negatives": 5045,
+    "false_positives": 2350,
+    "false_negatives": 1,
+    "true_positives": 702
+  },
+  "brier_score": 0.1995,
+  "expected_calibration_error": 0.3078,
+  "calibrated_temperature": 0.9323486685752869
+}

@@ -1,0 +1,45 @@
+{
+  "model_path": "models\\transformer_recon_unsw.pt",
+  "model_sha256": "82658d28083c1f458654204bfbb237e831e4c3e7cac008dd8fc1b833b7500bd7",
+  "test_dataset_path": "data\\processed_unsw\\test.npz",
+  "test_dataset_sha256": "0b70af2e0ce1633b9469ee8c20a5fd71f43dd2e0351d3c0fc1b6c55339a0f638",
+  "train_dataset_sha256": "d2af6ad156eccf3d040d0ab72997f35faf379222358c7d905d7300b24552a167",
+  "total_test_sequences": 8098,
+  "recon_class_count": 703,
+  "normal_class_count": 7395,
+  "calibration_temperature": 1.0,
+  "brier_score": 0.2057,
+  "expected_calibration_error": 0.3296,
+  "roc_auc": 0.9380997309896638,
+  "pr_auc": 0.4823184126556233,
+  "evaluations": {
+    "threshold_0.50": {
+      "threshold": 0.5,
+      "accuracy": 0.6949864163991109,
+      "precision": 0.2215568862275449,
+      "recall": 1.0,
+      "f1_score": 0.3627450980392157,
+      "false_positive_rate": 0.3340094658101407,
+      "confusion_matrix": {
+        "true_negatives": 4925,
+        "false_positives": 2470,
+        "false_negatives": 0,
+        "true_positives": 703
+      }
+    },
+    "threshold_0.70": {
+      "threshold": 0.7,
+      "accuracy": 0.8171153371202766,
+      "precision": 0.3204062788550323,
+      "recall": 0.9871977240398293,
+      "f1_score": 0.48379226211223425,
+      "false_positive_rate": 0.19905341444231867,
+      "confusion_matrix": {
+        "true_negatives": 5923,
+        "false_positives": 1472,
+        "false_negatives": 9,
+        "true_positives": 694
+      }
+    }
+  }
+}
