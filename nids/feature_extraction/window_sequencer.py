@@ -5,7 +5,7 @@ and maintains a sequence buffer of 10 windows per Source IP.
 
 from collections import deque
 from dataclasses import dataclass, field
-from typing import Deque, Dict, List, Optional, Set, Tuple
+from typing import Any, Deque, Dict, List, Optional, Set, Tuple
 import numpy as np
 import time
 
