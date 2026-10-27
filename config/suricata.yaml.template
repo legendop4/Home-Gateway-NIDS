@@ -5,7 +5,7 @@ default-log-dir: /var/log/suricata
 
 stats:
   enabled: yes
-  interval: 10sec
+  interval: 10
 
 outputs:
   - fast:
@@ -19,7 +19,7 @@ outputs:
       types:
         - alert:
             payload: no
-            payload-buffer-size: 4kb
+            payload-buffer-size: 4096
             payload-printable: yes
             packet: yes
             metadata: yes
