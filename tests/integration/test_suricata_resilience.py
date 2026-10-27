@@ -82,5 +82,6 @@ def test_live_suricata_process_execution(tmp_path):
     """
     from nids.capture.suricata_evaluator import run_suricata_on_pcap
     pcap_file = "data/pcaps/lab_fast_scan.pcap"
-    alerts = run_suricata_on_pcap(pcap_file)
+    alerts, mode, _ = run_suricata_on_pcap(pcap_file)
     assert len(alerts) > 0
+    assert mode == "REAL_SURICATA"
