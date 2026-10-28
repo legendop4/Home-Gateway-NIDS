@@ -128,6 +128,8 @@ class ScapyCaptureAdapter(BaseCaptureAdapter):
 
     def start(self, callback: Callable[[PacketSummary], None]) -> None:
         self._running = True
+        health_mgr = get_health_manager()
+        health_mgr.heartbeat("packet_capture", {"interface": self.interface, "status": "sniffing"})
 
         def _handler(pkt):
             if not self._running:
@@ -135,6 +137,7 @@ class ScapyCaptureAdapter(BaseCaptureAdapter):
             summary = scapy_pkt_to_summary(pkt)
             if summary:
                 callback(summary)
+                health_mgr.heartbeat("packet_capture", {"interface": self.interface})
 
         try:
             self._async_sniffer = scapy_all.AsyncSniffer(
@@ -147,6 +150,7 @@ class ScapyCaptureAdapter(BaseCaptureAdapter):
         except Exception as e:
             print(f"[ScapyCaptureAdapter] Error sniffing on {self.interface}: {e}")
             self._running = False
+            health_mgr.update_status("packet_capture", HealthStatus.DOWN, message=str(e))
 
     def stop(self) -> None:
         self._running = False

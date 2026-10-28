@@ -102,14 +102,22 @@ def authenticate_request(config: Optional[dict] = None) -> Tuple[bool, Optional[
             return True, Role.VIEWER
         return False, None
 
-    # Development mode localhost fallback
+    # Development mode localhost and private gateway subnet fallback
     is_prod = SecurityConfig.is_production(config)
     remote_ip = request.remote_addr or ""
     is_localhost = remote_ip in ["127.0.0.1", "::1", "localhost", "testclient"]
 
-    if not is_prod and is_localhost:
-        # In dev mode on localhost, grant ADMIN privileges for seamless developer experience
-        return True, Role.ADMIN
+    if not is_prod:
+        # In development mode, allow localhost and private LAN/hotspot clients to view dashboard seamlessly
+        import ipaddress
+        try:
+            ip_obj = ipaddress.ip_address(remote_ip)
+            if ip_obj.is_private or ip_obj.is_loopback:
+                return True, Role.ADMIN
+        except ValueError:
+            pass
+        if is_localhost:
+            return True, Role.ADMIN
 
     return False, None
 
