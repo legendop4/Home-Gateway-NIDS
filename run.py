@@ -60,20 +60,13 @@ def start_pipeline(config_path: str, mode: str, pcap_file: str = None, port: int
         alert_cooldown_sec=config["fusion"]["alert_cooldown_sec"],
     )
 
-    import ipaddress
-
     def is_lan_client(ip_str: Optional[str]) -> bool:
         if not ip_str:
             return False
-        try:
-            ip = ipaddress.ip_address(ip_str)
-            if not ip.is_private or ip.is_loopback:
-                return False
-            if ip_str in ["192.168.10.1", "127.0.0.1", "0.0.0.0", "255.255.255.255"]:
-                return False
+        # Specifically match genuine client devices connected to the Pi hotspot (192.168.10.X)
+        if ip_str.startswith("192.168.10.") and ip_str not in ("192.168.10.1", "192.168.10.0", "192.168.10.255"):
             return True
-        except ValueError:
-            return False
+        return False
 
     # 4. Ingestion Callbacks
     def packet_callback(packet: PacketSummary):

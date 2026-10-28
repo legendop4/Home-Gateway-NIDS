@@ -178,14 +178,14 @@ class NidsDatabase:
                 health_mgr.record_error("sqlite", f"Failed to upsert device: {e}", degrade=True)
 
     def cleanup_external_devices(self) -> None:
-        """Prunes external internet IP addresses mistakenly logged as local LAN devices."""
+        """Prunes any host that is not on the 192.168.10.X gateway hotspot subnet."""
         with self._lock:
             try:
                 with self._get_connection() as conn:
                     conn.execute("""
                         DELETE FROM devices 
-                        WHERE (ip NOT LIKE '192.168.%' AND ip NOT LIKE '10.%' AND ip NOT LIKE '172.%')
-                           OR ip IN ('192.168.10.1', '127.0.0.1', '0.0.0.0', '255.255.255.255')
+                        WHERE (ip NOT LIKE '192.168.10.%' AND ip != '192.168.1.100')
+                           OR ip IN ('192.168.10.1', '192.168.10.0', '192.168.10.255', '127.0.0.1', '0.0.0.0', '255.255.255.255');
                     """)
                     conn.commit()
             except Exception:
@@ -198,8 +198,8 @@ class NidsDatabase:
                 with self._get_connection() as conn:
                     cursor = conn.execute("""
                         SELECT * FROM devices 
-                        WHERE (ip LIKE '192.168.%' OR ip LIKE '10.%' OR ip LIKE '172.%')
-                          AND ip NOT IN ('192.168.10.1', '127.0.0.1', '0.0.0.0', '255.255.255.255')
+                        WHERE (ip LIKE '192.168.10.%' OR ip = '192.168.1.100')
+                          AND ip NOT IN ('192.168.10.1', '192.168.10.0', '192.168.10.255', '127.0.0.1', '0.0.0.0', '255.255.255.255')
                         ORDER BY last_seen DESC
                     """)
                     rows = [dict(row) for row in cursor.fetchall()]
@@ -255,13 +255,13 @@ class NidsDatabase:
                     high_risk = conn.execute("""
                         SELECT COUNT(*) as c FROM devices 
                         WHERE risk_level IN ('HIGH', 'CRITICAL')
-                          AND (ip LIKE '192.168.%' OR ip LIKE '10.%' OR ip LIKE '172.%')
-                          AND ip NOT IN ('192.168.10.1', '127.0.0.1', '0.0.0.0', '255.255.255.255')
+                          AND (ip LIKE '192.168.10.%' OR ip = '192.168.1.100')
+                          AND ip NOT IN ('192.168.10.1', '192.168.10.0', '192.168.10.255', '127.0.0.1', '0.0.0.0', '255.255.255.255')
                     """).fetchone()["c"]
                     total_devices = conn.execute("""
                         SELECT COUNT(*) as c FROM devices 
-                        WHERE (ip LIKE '192.168.%' OR ip LIKE '10.%' OR ip LIKE '172.%')
-                          AND ip NOT IN ('192.168.10.1', '127.0.0.1', '0.0.0.0', '255.255.255.255')
+                        WHERE (ip LIKE '192.168.10.%' OR ip = '192.168.1.100')
+                          AND ip NOT IN ('192.168.10.1', '192.168.10.0', '192.168.10.255', '127.0.0.1', '0.0.0.0', '255.255.255.255')
                     """).fetchone()["c"]
 
                     # Alert breakdown by method
