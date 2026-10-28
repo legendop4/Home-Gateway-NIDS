@@ -31,6 +31,7 @@ def start_pipeline(config_path: str, mode: str, pcap_file: str = None, port: int
 
     # 1. Initialize Storage & Exporters
     db = NidsDatabase(db_path=config["system"]["db_path"])
+    db.cleanup_external_devices()
     exporter = SiemExporter(export_file_path=config["system"]["siem_export_path"])
 
     # 2. Initialize Sequencer & ML Engine
@@ -58,10 +59,33 @@ def start_pipeline(config_path: str, mode: str, pcap_file: str = None, port: int
         alert_cooldown_sec=config["fusion"]["alert_cooldown_sec"],
     )
 
+    import ipaddress
+
+    def is_lan_client(ip_str: Optional[str]) -> bool:
+        if not ip_str:
+            return False
+        try:
+            ip = ipaddress.ip_address(ip_str)
+            if not ip.is_private or ip.is_loopback:
+                return False
+            if ip_str in ["192.168.10.1", "127.0.0.1", "0.0.0.0", "255.255.255.255"]:
+                return False
+            return True
+        except ValueError:
+            return False
+
     # 4. Ingestion Callbacks
     def packet_callback(packet: PacketSummary):
-        # Update devices table
-        db.upsert_device(packet.src_ip, delta_packets=1, delta_bytes=packet.length)
+        # Update devices table only for genuine connected LAN client devices
+        lan_ip = None
+        if is_lan_client(packet.src_ip):
+            lan_ip = packet.src_ip
+        elif is_lan_client(packet.dst_ip):
+            lan_ip = packet.dst_ip
+
+        if lan_ip:
+            db.upsert_device(lan_ip, delta_packets=1, delta_bytes=packet.length)
+
         # Update flow tracker
         flow = flow_tracker.process_packet(packet)
         # Ingest into window sequencer

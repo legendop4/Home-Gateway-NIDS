@@ -177,12 +177,31 @@ class NidsDatabase:
             except Exception as e:
                 health_mgr.record_error("sqlite", f"Failed to upsert device: {e}", degrade=True)
 
+    def cleanup_external_devices(self) -> None:
+        """Prunes external internet IP addresses mistakenly logged as local LAN devices."""
+        with self._lock:
+            try:
+                with self._get_connection() as conn:
+                    conn.execute("""
+                        DELETE FROM devices 
+                        WHERE (ip NOT LIKE '192.168.%' AND ip NOT LIKE '10.%' AND ip NOT LIKE '172.%')
+                           OR ip IN ('192.168.10.1', '127.0.0.1', '0.0.0.0', '255.255.255.255')
+                    """)
+                    conn.commit()
+            except Exception:
+                pass
+
     def get_all_devices(self) -> List[Dict[str, Any]]:
         health_mgr = get_health_manager()
         with self._lock:
             try:
                 with self._get_connection() as conn:
-                    cursor = conn.execute("SELECT * FROM devices ORDER BY last_seen DESC")
+                    cursor = conn.execute("""
+                        SELECT * FROM devices 
+                        WHERE (ip LIKE '192.168.%' OR ip LIKE '10.%' OR ip LIKE '172.%')
+                          AND ip NOT IN ('192.168.10.1', '127.0.0.1', '0.0.0.0', '255.255.255.255')
+                        ORDER BY last_seen DESC
+                    """)
                     rows = [dict(row) for row in cursor.fetchall()]
                     health_mgr.heartbeat("sqlite")
                     return rows
@@ -233,8 +252,17 @@ class NidsDatabase:
             try:
                 with self._get_connection() as conn:
                     total_alerts = conn.execute("SELECT COUNT(*) as c FROM alerts").fetchone()["c"]
-                    high_risk = conn.execute("SELECT COUNT(*) as c FROM devices WHERE risk_level IN ('HIGH', 'CRITICAL')").fetchone()["c"]
-                    total_devices = conn.execute("SELECT COUNT(*) as c FROM devices").fetchone()["c"]
+                    high_risk = conn.execute("""
+                        SELECT COUNT(*) as c FROM devices 
+                        WHERE risk_level IN ('HIGH', 'CRITICAL')
+                          AND (ip LIKE '192.168.%' OR ip LIKE '10.%' OR ip LIKE '172.%')
+                          AND ip NOT IN ('192.168.10.1', '127.0.0.1', '0.0.0.0', '255.255.255.255')
+                    """).fetchone()["c"]
+                    total_devices = conn.execute("""
+                        SELECT COUNT(*) as c FROM devices 
+                        WHERE (ip LIKE '192.168.%' OR ip LIKE '10.%' OR ip LIKE '172.%')
+                          AND ip NOT IN ('192.168.10.1', '127.0.0.1', '0.0.0.0', '255.255.255.255')
+                    """).fetchone()["c"]
 
                     # Alert breakdown by method
                     methods = conn.execute("""
