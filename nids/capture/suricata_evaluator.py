@@ -19,6 +19,7 @@ import scapy.all as scapy_all
 
 from .eve_streamer import SuricataEvent, SuricataEveStreamer
 from .adapters import scapy_pkt_to_summary
+from ..feature_extraction.flow_tracker import PacketSummary
 
 
 SURICATA_MODE_REAL = "REAL_SURICATA"
