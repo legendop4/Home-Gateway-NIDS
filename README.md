@@ -136,7 +136,57 @@ Stress tests temporal sequence tracking on stochastic Poisson probing intervals 
 
 ---
 
-## 5. Security & Reliability Architecture
+## 5. Physical Edge Gateway Testbed Specification
+
+The platform was deployed and empirically verified on physical edge gateway hardware as an inline wireless router appliance:
+
+```
+                  ┌──────────────────────────────────────────────┐
+                  │    Raspberry Pi 4 Model B (4GB LPDDR4)       │
+                  │   64-bit aarch64 (Debian Kernel 6.18.50)     │
+                  │                                              │
+ [WAN / Campus]   │  eth0 (192.168.137.32/24)                    │
+  192.168.137.1 ──┼──► [Linux IP Routing / iptables NAT]        │
+                  │              │                               │
+                  │              ▼                               │
+                  │  wlan0 (192.168.10.1/24 - AP Mode)           │
+                  │  hostapd SSID: HomeGateway-NIDS              │
+                  │  dnsmasq DHCP: 192.168.10.50 - .200          │
+                  │              │                               │
+                  │   ┌──────────┴──────────┐                    │
+                  │   ▼                     ▼                    │
+                  │ Suricata 7.0.10   Sequence TF                │
+                  │ (AF_PACKET Fanout) (PyTorch 2.x)             │
+                  │   └──────────┬──────────┘                    │
+                  │              ▼                               │
+                  │    DecisionEngine / SOC                      │
+                  └──────────────┼───────────────────────────────┘
+                                 │ (WiFi 802.11 b/g/n)
+                                 ▼
+                     Connected Mobile Devices / IoT
+                           (192.168.10.165)
+```
+
+### Hardware & OS Specifications
+* **Host Model**: Raspberry Pi 4 Model B (Broadcom BCM2711, Quad-core Cortex-A72 @ 1.5 GHz)
+* **Architecture**: 64-bit ARM (`aarch64 GNU/Linux`, Kernel `6.18.50+rpt-rpi-v8 #1 SMP PREEMPT`)
+* **System Memory**: 3.7 GiB LPDDR4 (1.8 GiB available under live multi-engine runtime; pipeline RSS ~677 MB)
+* **Storage**: 32 GB MicroSD (`/dev/mmcblk0p2`, 15 GB available, 47% root utilization)
+
+### Network Interfaces & Dual-Subnet Routing
+* **WAN Interface (`eth0`)**: `192.168.137.32/24` via default gateway `192.168.137.1` (Uplink to WAN/Campus).
+* **LAN Access Point (`wlan0`)**: `192.168.10.1/24` (Subnet: `192.168.10.0/24`, AP broadcast: `HomeGateway-NIDS`).
+* **Active Sniffing Interfaces**: `wlan0` (Client ingress), `eth0` (WAN egress), and `any` pseudo-device via `tcpdump -D`.
+
+### Industrial Suricata 7.0.10 IDS Daemon
+* **Suricata Engine**: Version `7.0.10 RELEASE` compiled with Rust support (`rustc 1.85.0`)
+* **Packet Ingestion**: High-throughput Linux `AF_PACKET` socket driver with packet fanout (`HAVE_PACKET_FANOUT`)
+* **Protocol & Fingerprinting Stack**: TLS, HTTP/2 decompression, JA3/JA4 fingerprinting, LibHTP 0.5.50, PCRE JIT, and Libjansson
+* **Service State**: Managed via systemd (`suricata.service`), running active across all 4 CPU cores in inline IDS mode.
+
+---
+
+## 6. Security & Reliability Architecture
 
 - **Centralized Health Manager**: Watchdog daemon monitoring 8 subsystems with status states (`UP`, `DEGRADED`, `DOWN`, `ML_UNAVAILABLE`).
 - **Bounded In-Memory Structures**: Hard caps on flow tables (50k), IP sequence buffers (10k), cooldown cache (5k), and SIEM export queue (5k).
@@ -146,7 +196,7 @@ Stress tests temporal sequence tracking on stochastic Poisson probing intervals 
 
 ---
 
-## 6. Quick Start & Execution
+## 7. Quick Start & Execution
 
 ### Setup Environment
 ```bash
