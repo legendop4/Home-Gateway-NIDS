@@ -100,8 +100,7 @@ class OfflineSuricataEngine:
                 for k in list(self.threshold_tracker.keys())[:int(self.max_tracked_entries * 0.10)]:
                     del self.threshold_tracker[k]
 
-    def evaluate_packet(self, pkt) -> List[SuricataEvent]:
-        summary = scapy_pkt_to_summary(pkt)
+    def evaluate_summary(self, summary: PacketSummary) -> List[SuricataEvent]:
         if not summary or summary.protocol != "TCP":
             return []
 
@@ -151,6 +150,10 @@ class OfflineSuricataEngine:
                     self.threshold_tracker[key] = []
 
         return matched_events
+
+    def evaluate_packet(self, pkt) -> List[SuricataEvent]:
+        summary = scapy_pkt_to_summary(pkt)
+        return self.evaluate_summary(summary) if summary else []
 
     def evaluate_pcap(self, pcap_path: str) -> Tuple[List[SuricataEvent], Dict[str, float]]:
         """Processes entire PCAP and returns alerts alongside measured execution latency."""

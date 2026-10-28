@@ -17,6 +17,7 @@ from nids.feature_extraction.window_sequencer import WindowSequencer
 from nids.ml.transformer_model import TransformerInferenceEngine
 from nids.storage.database import NidsDatabase
 from nids.storage.exporter import SiemExporter
+from nids.capture.suricata_evaluator import OfflineSuricataEngine
 from nids.fusion.decision_engine import DecisionEngine
 from nids.dashboard.app import create_dashboard_app
 
@@ -38,6 +39,7 @@ def start_pipeline(config_path: str, mode: str, pcap_file: str = None, port: int
         sequence_length=config["feature_extraction"]["sequence_length"],
     )
     flow_tracker = FlowTracker()
+    offline_rules = OfflineSuricataEngine(rules_path="config/rules/recon.rules")
 
     ml_weights = config["ml"]["model_weights_path"]
     ml_engine = TransformerInferenceEngine(weights_path=ml_weights, device=config["ml"]["device"])
@@ -65,12 +67,36 @@ def start_pipeline(config_path: str, mode: str, pcap_file: str = None, port: int
         # Ingest into window sequencer
         closed_win = sequencer.process_packet(packet, flow_duration=flow.duration)
         if closed_win:
-            # Trigger periodic ML sequence evaluation on completed window
             fusion.evaluate_periodic_ml(closed_win.src_ip)
+
+        # Immediate inline signature evaluation for live packets
+        matched_events = offline_rules.evaluate_summary(packet)
+        for ev in matched_events:
+            fusion.handle_suricata_event(ev)
+
+    # Background periodic active sequence evaluator (refreshes metrics & anomaly scores every 3s)
+    def background_evaluator():
+        while True:
+            time.sleep(3.0)
+            try:
+                now = time.time()
+                closed_list = sequencer.flush_expired(now)
+                for win in closed_list:
+                    fusion.evaluate_periodic_ml(win.src_ip)
+                for src_ip in list(sequencer.active_windows.keys()):
+                    fusion.evaluate_periodic_ml(src_ip)
+            except Exception:
+                pass
+
+    eval_thread = threading.Thread(target=background_evaluator, daemon=True)
+    eval_thread.start()
 
     # 5. Start Suricata Streamer
     if config["suricata"]["enabled"]:
-        eve_path = config["suricata"]["eve_path"]
+        configured_eve = Path(config["suricata"]["eve_path"])
+        pi_sys_eve = Path("/var/log/suricata/eve.json")
+        eve_path = str(pi_sys_eve) if pi_sys_eve.exists() else str(configured_eve)
+
         streamer = SuricataEveStreamer(
             eve_path=eve_path,
             recon_keywords=config["suricata"]["recon_signature_keywords"],
